@@ -1,8 +1,16 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
+
+// ✅ All route imports at the top
+import authRoutes from "./routes/auth.routes.js";
+import poolRoutes from "./routes/pool.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import chatRoutes from "./routes/chat.routes.js";
+import notesRoutes from "./routes/notes.route.js";
 
 dotenv.config();
 
@@ -10,19 +18,21 @@ import pool from "./config/db.js";
 
 const app = express();
 
-// --- "ALLOW ALL" CORS CONFIGURATION ---
-app.use(
-  cors({
-    origin: true, // Automatically allows any origin
-    credentials: true, // Keeps your auth cookies working
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// --- CORS Configuration ---
+const corsOptions = {
+  origin: true,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // ✅ Handle ALL preflight requests explicitly
 
 app.use(express.json());
+app.use(cookieParser()); // ✅ Before routes
 
-// --- 1. Bulletproof Swagger Configuration ---
+// --- Swagger Configuration ---
 const swaggerOptions = {
   definition: {
     openapi: "3.0.0",
@@ -82,17 +92,15 @@ const swaggerOptions = {
       },
     },
   },
-  apis: [], // We leave this empty because we defined paths directly above
+  apis: [],
 };
 
-// --- 2. Initialize Swagger ---
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-// --- 3. Your API Routes ---
+// --- API Routes (all registered BEFORE app.listen) ---
 app.post("/api/chat", async (req, res) => {
   try {
-    // Just sending our test string for now
     res.json({ reply: "hi" });
   } catch (error) {
     console.error("Error:", error);
@@ -100,47 +108,24 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📄 API Docs available at http://localhost:${PORT}/docs`);
-});
+app.use("/api/auth", authRoutes);
+app.use("/api/pools", poolRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/chats", chatRoutes);
+app.use("/api/notes", notesRoutes);
 
-console.log("DB_PASSWORD:", process.env.DB_PASSWORD);
-console.log("TYPE:", typeof process.env.DB_PASSWORD);
-
+// --- DB Connection ---
 pool
   .connect()
   .then(() => console.log("DB connected ✅"))
   .catch((err) => console.error("DB connection error ❌", err));
 
+console.log("DB_PASSWORD:", process.env.DB_PASSWORD);
+console.log("TYPE:", typeof process.env.DB_PASSWORD);
 
-
-//cookie
-import cookieParser from "cookie-parser";
-
-app.use(cookieParser());
-
-//routes
-import authRoutes from "./routes/auth.routes.js";
-
-app.use("/api/auth", authRoutes);
-
-import poolRoutes from "./routes/pool.routes.js";
-
-app.use("/api/pools", poolRoutes);
-
-import userRoutes from "./routes/user.routes.js";
-
-app.use("/api/users", userRoutes);
-
-import chatRoutes from "./routes/chat.routes.js";
-
-app.use("/api/chats", chatRoutes);
-
-import notesRoutes from "./routes/notes.route.js";
-
-app.use("/api/notes", notesRoutes);
-
-
-
+// --- Start Server (always last) ---
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`📄 API Docs available at http://localhost:${PORT}/docs`);
+});
