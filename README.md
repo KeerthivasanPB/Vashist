@@ -1,5 +1,15 @@
 # StudySphere — Collaborative Notes Sharing with Token Economy
 
+## My Contributions (Backend & Database Architecture)
+
+As the core backend developer for this project, I was responsible for designing the server architecture, relational database schema, and the API logic driving the platform's token economy. My specific technical contributions include:
+
+*   **System Architecture & API Design:** Engineered a robust RESTful backend using Node.js and Express, implementing modular routing across Authentication, Users, Pools, Notes, and Chats endpoints.
+*   **Database Schema & Management:** Designed and implemented a highly scalable PostgreSQL relational database schema, managing complex entity metadata across `Users`, `Pools`, `Poolmember`, `Notes`, `Token`, `Chats`, and `QA` tables.
+*   **Authentication & Security:** Built a comprehensive, stateless authentication pipeline using `bcrypt` for password hashing and JSON Web Tokens (JWT) for secure access and refresh token management. Implemented email verification workflows using Nodemailer.
+*   **Token Economy Logic:** Developed the transactional backend logic to solve the platform's freeloader problem. Built the system to securely manage internal user balances, award integer token units for valid uploads, and deduct tokens per API query.
+*   **File Ingestion Pipeline:** Implemented robust file upload handling using Multer to safely parse `multipart/form-data` during user PDF note contributions.
+
 ## Live Demo
 🔗 Deployed Link: https://vashist-5j8tek0do-sanjay-azhagans-projects.vercel.app?_vercel_share=P2sezmBuHw6kwYUuQ0s6N4vmf9RBdgOc
 
